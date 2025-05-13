@@ -143,7 +143,7 @@ def generate_policy():
 
         insurance_price=random.choice(possible_insurance_price)
         minimal_payout=insurance_price*100
-        maximal_payout=random.randint(400000, 500000)
+        maximal_payout=random.randint(100000, 500000)
         policy_data= {
             "policy_id":policy_id,
             "insurance_price":insurance_price,
@@ -172,8 +172,11 @@ def generate_claim():
         }
         claims.append(claim)
 
-        policy_associated = policies["id" == claim["policy_foreign_key"]]
+        policy_associated = next(p for p in policies if p["policy_id"] == claim["policy_foreign_key"])
+        policy_associated_data = next(p for p in policies_data if p["policy_id"] == claim["policy_foreign_key"])
         start_date = policy_associated["start_date"]
+        minimal_payout = policy_associated_data["minimal_payout"]
+        maximal_payout = policy_associated_data["maximal_payout"]
 
         date_of_submission = start_date + timedelta(days=random.randint(1, 365))
         date_of_decision = date_of_submission + timedelta(days=random.randint(1, 60)) # acceptance or rejection date
@@ -184,8 +187,8 @@ def generate_claim():
             "date_of_submission": date_of_submission,
             "date_of_decision": date_of_decision,
             "date_of_payout": date_of_payout,
-            "amount_of_payout": random.randint(35000, 400000),
-            "suspicion_of_fraud": random.choices(["YES", "NO"], weights=[1, 9], k=1)[0]
+            "amount_of_payout": random.randint(minimal_payout, maximal_payout),
+            "suspicion_of_fraud": random.choices(["fraud suspected", "not suspected of fraud"], weights=[1, 9], k=1)[0]
         }
         claims_data.append(claim_data)
     
@@ -217,6 +220,11 @@ def save_snapshot(snapshot ,customers, adjusters, agents, policies, policies_dat
         writer.writeheader()
         writer.writerows(policies)
 
+    with open(f'{snapshot}/csv/policies_data.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=policies_data[0].keys())
+        writer.writeheader()
+        writer.writerows(policies_data)
+    
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Policies Data"
@@ -226,10 +234,16 @@ def save_snapshot(snapshot ,customers, adjusters, agents, policies, policies_dat
     workbook.save(f'{snapshot}/excel/policies_data.xlsx')
 
 
-    with open(f'{snapshot}_claims.csv', mode='w', newline='', encoding='utf-8') as file:
+    with open(f'{snapshot}/csv/claims.csv', mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=claims[0].keys())
         writer.writeheader()
         writer.writerows(claims)
+
+    with open(f'{snapshot}/csv/claims_data.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=claims_data[0].keys())
+        writer.writeheader()
+        writer.writerows(claims_data)
+
 
     workbook = Workbook()
     sheet = workbook.active

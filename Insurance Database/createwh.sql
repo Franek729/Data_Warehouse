@@ -20,7 +20,7 @@ CREATE TABLE InsuranceAgent (
 );
 
 CREATE TABLE Policy (
-    Policy_ID INT PRIMARY KEY,
+    PolicyID INT PRIMARY KEY,
     StartDate DATE NOT NULL,
     EndDate DATE NOT NULL,
     Coverage VARCHAR(30),
@@ -39,9 +39,9 @@ CREATE TABLE Adjuster (
 CREATE TABLE Claim (
     Claim_ID INT PRIMARY KEY,
     Status VARCHAR(50) NOT NULL,
-    Policy_ID INT,
+    PolicyID INT,
     AdjusterName VARCHAR(50),
-    FOREIGN KEY (Policy_ID) REFERENCES Policy(Policy_ID),
+    FOREIGN KEY (PolicyID) REFERENCES Policy(PolicyID),
     FOREIGN KEY (AdjusterName) REFERENCES Adjuster(AdjusterName),
     
 );

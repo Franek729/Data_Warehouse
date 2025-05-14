@@ -30,8 +30,7 @@ CREATE TABLE Customer (
     Name VARCHAR(50),
     City VARCHAR(30),
     Street VARCHAR(100),
-    BirthDate INT,
-	FOREIGN KEY (BirthDate) REFERENCES Date(DateID)
+    AgeRange varchar(20),
 );
 
 CREATE TABLE Policy (
@@ -47,7 +46,9 @@ CREATE TABLE Policy (
 CREATE TABLE Junk(
 	JunkID INT IDENTITY(1,1) PRIMARY KEY,
 	Status varchar(30),
-	FraudSuspicion Varchar(30)
+	FraudSuspicion Varchar(30),
+	CONSTRAINT chk_Status CHECK (Status IN ('accepted', 'declined')),
+	CONSTRAINT chk_FraudSuspicion CHECK (FraudSuspicion IN ('fraud suspected', 'not suspected of fraud'))
 );
 
 

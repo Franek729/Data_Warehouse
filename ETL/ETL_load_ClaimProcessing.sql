@@ -4,8 +4,6 @@ GO
 IF OBJECT_ID('dbo.ClaimsTemp') IS NOT NULL DROP TABLE dbo.ClaimsTemp;
 CREATE TABLE dbo.ClaimsTemp (
     Claim_ID INT,
-    PolicyID INT,
-    AdjusterName VARCHAR(50),
     SubmissionDate DATE,
     DecisionDate DATE,
     PayoutDate DATE,
@@ -38,37 +36,22 @@ SELECT
     c.AdjusterName,
     p.PESEL,
     p.AgentName,
-    c.FraudSuspicion AS Status,
-    c.SubmissionDate,
-    c.DecisionDate,
-    DATEDIFF(DAY, c.SubmissionDate, c.DecisionDate) AS DaysForDecision,
-    c.AmountPaid AS PayoutAmount
-FROM dbo.ClaimsTemp c
-JOIN insurance_database.dbo.Policy p ON c.PolicyID = p.PolicyID;
+    c.Claim_ID AS JunkID,
+	d1.DateID AS SubmissionDateID,
+	d2.DateID AS DecisionDateID,
+    DATEDIFF(DAY, c1.SubmissionDate, c1.DecisionDate) AS DaysForDecision,
+    c1.AmountPaid AS PayoutAmount
+FROM insurance_database.dbo.Claim c
+JOIN dbo.ClaimsTemp c1 ON c.Claim_ID = c1.Claim_ID
+JOIN insurance_database.dbo.Policy p ON c.PolicyID = p.PolicyID
+JOIN insurance_warehouse.dbo.DimDate d1 ON c1.SubmissionDate = d1.Date
+JOIN insurance_warehouse.dbo.DimDate d2 ON c1.DecisionDate = d2.Date;
 GO
 
+SET IDENTITY_INSERT ClaimProcessing ON;
+
 MERGE INTO ClaimProcessing AS Target
-USING (
-    SELECT
-        p.PolicyID,
-        a.AdjusterID,
-        cu.CustomerID,
-        ag.AgentID,
-        j.JunkID,
-        d1.DateID AS SubmissionDateID,
-        d2.DateID AS DecisionDateID,
-        v.ClaimNumber,
-        v.DaysForDecision,
-        v.PayoutAmount
-    FROM vETLClaimProcessing v
-	JOIN Policy p ON p.PolicyID = v.PolicyID
-    JOIN Adjuster a ON a.AdjusterName = v.AdjusterName AND a.isCurrent = 1
-    JOIN Customer cu ON cu.PESEL = v.PESEL
-    JOIN InsuranceAgent ag ON ag.AgentName = v.AgentName
-    JOIN Junk j ON j.JunkID = v.JunkID
-    JOIN Date d1 ON d1.Date = v.SubmissionDate
-    JOIN Date d2 ON d2.Date = v.DecisionDate
-) AS Source
+USING vETLClaimProcessing AS Source
 ON Target.ClaimNumber = Source.ClaimNumber
 WHEN NOT MATCHED THEN
     INSERT (
@@ -85,9 +68,9 @@ WHEN NOT MATCHED THEN
     )
     VALUES (
         Source.PolicyID,
-        Source.AdjusterID,
-        Source.CustomerID,
-        Source.AgentID,
+        Source.AdjusterName,
+        Source.PESEL,
+        Source.AgentName,
         Source.JunkID,
         Source.SubmissionDateID,
         Source.DecisionDateID,
@@ -95,10 +78,13 @@ WHEN NOT MATCHED THEN
         Source.DaysForDecision,
         Source.PayoutAmount
     );
+
+SET IDENTITY_INSERT Policy OFF;
+
 GO
 
 
 DROP VIEW vETLClaimProcessing;
-USE insurance_database;
+USE insurance_warehouse;
 DROP TABLE dbo.ClaimsTemp;
 GO

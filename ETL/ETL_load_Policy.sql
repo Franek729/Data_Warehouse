@@ -10,8 +10,8 @@ BULK INSERT dbo.PoliciesDataTemp
     WITH
     (
     FIRSTROW = 2,
-    FIELDTERMINATOR = ',',  --CSV field delimiter
-    ROWTERMINATOR = '\n',   --Use to shift the control to next row
+    FIELDTERMINATOR = ',',  
+    ROWTERMINATOR = '\n',  
     TABLOCK
     )
 
@@ -23,9 +23,9 @@ GO
 
 CREATE VIEW vETLDimPolicyData AS
 SELECT
-    p1.PolicyID AS PolicyID,
-    p1.StartDate,
-    p1.EndDate,
+    p1.PolicyID,
+    d1.DateID AS StartDateID,
+    d2.DateID AS EndDateID,
     p1.Coverage,
     CASE
 		WHEN p2.maximal_payout BETWEEN 100000 AND 225000 THEN 'LOW'
@@ -33,27 +33,24 @@ SELECT
 		WHEN p2.maximal_payout BETWEEN 375001 AND 500000 THEN 'HIGH'
 	END AS PayoutAmountCategory
 FROM insurance_database.dbo.Policy as p1
-JOIN dbo.PoliciesDataTemp as p2 ON p1.PolicyID = p2.PolicyID;
+JOIN dbo.PoliciesDataTemp p2 ON p1.PolicyID = p2.PolicyID
+JOIN insurance_warehouse.dbo.DimDate d1 ON p1.StartDate = d1.Date
+JOIN insurance_warehouse.dbo.DimDate d2 ON p1.EndDate = d2.Date
 GO
 
+SET IDENTITY_INSERT Policy ON;
+
 MERGE INTO Policy AS Target
-USING (
-    SELECT 
-        p.PolicyID,
-        d1.DateID AS StartDateID,
-        d2.DateID AS EndDateID,
-        p.Coverage,
-        p.PayoutAmountCategory
-    FROM vETLDimPolicyData p
-    JOIN Date d1 ON d1.Date = p.StartDate
-    JOIN Date d2 ON d2.Date = p.EndDate
-) AS Source
+USING vETLDimPolicyData AS Source
 ON Target.PolicyID = Source.PolicyID
 WHEN NOT MATCHED THEN
     INSERT (PolicyID, StartDateID, EndDateID, CoverageDetails, PayoutAmountCategory)
     VALUES (Source.PolicyID, Source.StartDateID, Source.EndDateID, Source.Coverage, Source.PayoutAmountCategory)
 WHEN NOT MATCHED BY SOURCE THEN
     DELETE;
+
+SET IDENTITY_INSERT Policy OFF;
+
 GO
 
 DROP VIEW vETLDimPolicyData;

@@ -56,7 +56,7 @@ possible_streets = [ "ul. Marszalkowska", "ul. Krakowskie Przedmiescie", "ul. No
     "Al. Rzeczypospolitej", "Al. Jana III Sobieskiego", "Al. KEN", "Al. Prymasa Tysiaclecia", "Al. Armii Ludowej",
     "Al. Zieleniecka", "Al. Waszyngtona", "Al. Stanow Zjednoczonych", "Al. Krakowska", "Al. Wilanowska"]
 
-possible_status = ["pending", "resolved"]
+possible_status = ["Accepted", "Declined"]
 
 possible_specialization = ["Automobile", "Property", "Health", "Life", "Industrial", "Agricultural", "Travel", "Other"]
 

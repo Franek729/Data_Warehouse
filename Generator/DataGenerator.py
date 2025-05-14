@@ -180,14 +180,20 @@ def generate_claim():
 
         date_of_submission = start_date + timedelta(days=random.randint(1, 365))
         date_of_decision = date_of_submission + timedelta(days=random.randint(1, 60)) # acceptance or rejection date
-        date_of_payout = date_of_decision + timedelta(days=random.randint(1, 14))
+
+        if status == "Declined":
+            date_of_payout = date_of_decision
+            amount_of_payout = 0
+        else:
+            date_of_payout = date_of_decision + timedelta(days=random.randint(1, 14))
+            amount_of_payout = random.randint(minimal_payout, maximal_payout)
 
         claim_data = {
             "claim_id": claim_id,
             "date_of_submission": date_of_submission,
             "date_of_decision": date_of_decision,
             "date_of_payout": date_of_payout,
-            "amount_of_payout": random.randint(minimal_payout, maximal_payout),
+            "amount_of_payout": amount_of_payout,
             "suspicion_of_fraud": random.choices(["fraud suspected", "not suspected of fraud"], weights=[1, 9], k=1)[0]
         }
         claims_data.append(claim_data)

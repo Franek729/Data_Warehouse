@@ -2,7 +2,7 @@ USE insurance_database;
 GO
 
 CREATE TABLE Customer (
-    PESEL VARCHAR(12) PRIMARY KEY,
+    PESEL CHAR(11) PRIMARY KEY,
     Name VARCHAR(50) NOT NULL,
 	DateOfBirth DATE,
     Phone VARCHAR(11),
@@ -23,11 +23,12 @@ CREATE TABLE Policy (
     PolicyID INT PRIMARY KEY,
     StartDate DATE NOT NULL,
     EndDate DATE NOT NULL,
-    Coverage VARCHAR(30),
+	PESEL CHAR(11),
 	AgentName VARCHAR(50),
-    PESEL VARCHAR(12)
+	Coverage VARCHAR(30),
+	FOREIGN KEY (PESEL) REFERENCES Customer(PESEL),
 	FOREIGN KEY (AgentName) REFERENCES InsuranceAgent(AgentName),
-    FOREIGN KEY (PESEL) REFERENCES Customer(PESEL)
+    
 );
 
 CREATE TABLE Adjuster (
@@ -39,9 +40,10 @@ CREATE TABLE Adjuster (
 CREATE TABLE Claim (
     Claim_ID INT PRIMARY KEY,
     Status VARCHAR(50) NOT NULL,
+	AdjusterName VARCHAR(50),
     PolicyID INT,
-    AdjusterName VARCHAR(50),
+	FOREIGN KEY (AdjusterName) REFERENCES Adjuster(AdjusterName),
     FOREIGN KEY (PolicyID) REFERENCES Policy(PolicyID),
-    FOREIGN KEY (AdjusterName) REFERENCES Adjuster(AdjusterName),
+
     
 );

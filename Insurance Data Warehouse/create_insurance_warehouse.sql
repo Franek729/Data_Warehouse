@@ -17,7 +17,7 @@ CREATE TABLE Adjuster (
 );
 
 CREATE TABLE Date(
-	DateID INT IDENTITY(1,1) PRIMARY KEY,
+	DateID INT PRIMARY KEY,
 	Date date,
 	Year INT,
 	MonthNumeric INT,
@@ -34,7 +34,7 @@ CREATE TABLE Customer (
 );
 
 CREATE TABLE Policy (
-    PolicyID INT IDENTITY(1,1) PRIMARY KEY,
+    PolicyID INT PRIMARY KEY,
 	StartDateID INT,
 	EndDateID INT,
     CoverageDetails VARCHAR(30),
@@ -44,7 +44,7 @@ CREATE TABLE Policy (
 );
 
 CREATE TABLE Junk(
-	JunkID INT IDENTITY(1,1) PRIMARY KEY,
+	JunkID INT  PRIMARY KEY,
 	Status varchar(30),
 	FraudSuspicion Varchar(30),
 	CONSTRAINT chk_Status CHECK (Status IN ('accepted', 'declined')),
@@ -60,7 +60,7 @@ CREATE TABLE ClaimProcessing (
 	JunkID INT,
 	SubmissionDateID INT,
 	DecisionDateID INT,
-	ClaimNumber Int IDENTITY(1,1),
+	ClaimNumber Int,
 	DaysForDecision INT,
 	PayoutAmount INT,
     FOREIGN KEY (PolicyID) REFERENCES Policy(PolicyID),

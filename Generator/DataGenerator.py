@@ -135,9 +135,11 @@ def generate_policy():
             "policy_id": policy_id,
             "start_date": start_date.date(),
             "end_date": end_date.date(),
-            "coverage": coverage,
+
+            "customer_foreign_key": customers[random.randint(0, number_of_customers - 1)]["pesel"],
             "agent_foreign_key": agents[random.randint(0, number_of_agents - 1)]["name"],
-            "customer_foreign_key": customers[random.randint(0, number_of_customers - 1)]["pesel"]
+            "coverage": coverage
+            
         }
         policies.append(policy)
 
@@ -167,8 +169,9 @@ def generate_claim():
         claim = {
             "claim_id": claim_id,
             "status": status,
-            "policy_foreign_key": policies[random.randint(0, number_of_policies - 1)]["policy_id"],
-            "adjuster_foreign_key": adjusters[random.randint(0, number_of_adjusters - 1)]["name"]
+            "adjuster_foreign_key": adjusters[random.randint(0, number_of_adjusters - 1)]["name"],
+            "policy_foreign_key": policies[random.randint(0, number_of_policies - 1)]["policy_id"]
+            
         }
         claims.append(claim)
 
@@ -179,21 +182,15 @@ def generate_claim():
         maximal_payout = policy_associated_data["maximal_payout"]
 
         date_of_submission = start_date + timedelta(days=random.randint(1, 365))
-        date_of_decision = date_of_submission + timedelta(days=random.randint(1, 60)) # acceptance or rejection date
-
-        if status == "Declined":
-            date_of_payout = date_of_decision
-            amount_of_payout = 0
-        else:
-            date_of_payout = date_of_decision + timedelta(days=random.randint(1, 14))
-            amount_of_payout = random.randint(minimal_payout, maximal_payout)
+        date_of_decision = date_of_submission + timedelta(days=random.randint(1, 60)) 
+        date_of_payout = date_of_decision + timedelta(days=random.randint(1, 14))
 
         claim_data = {
             "claim_id": claim_id,
             "date_of_submission": date_of_submission,
             "date_of_decision": date_of_decision,
-            "date_of_payout": date_of_payout,
-            "amount_of_payout": amount_of_payout,
+            "date_of_payout": date_of_payout if status != "declined" else None,
+            "amount_of_payout": random.randint(minimal_payout, maximal_payout) if status != "declined" else None,
             "suspicion_of_fraud": random.choices(["fraud suspected", "not suspected of fraud"], weights=[1, 9], k=1)[0]
         }
         claims_data.append(claim_data)

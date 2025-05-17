@@ -14,7 +14,7 @@ GO
 
 
 BULK INSERT dbo.ClaimsTemp
-FROM 'C:\Users\pc\Desktop\Data_Warehouse\Generator\t2\csv\claims_data.csv'
+FROM 'C:\Users\pc\Desktop\Data_Warehouse\Generator\t1\csv'
 WITH (
      FIRSTROW = 2,
      FIELDTERMINATOR = ',',
@@ -22,45 +22,35 @@ WITH (
      TABLOCK
  );
 
-USE insurance_warehouse;
-GO
-
-
 IF OBJECT_ID('vETLClaimProcessing') IS NOT NULL DROP VIEW vETLClaimProcessing;
 GO
+
 
 CREATE VIEW vETLClaimProcessing AS
 SELECT
     c.Claim_ID AS ClaimNumber,
-    dwPol.PolicyID,                      -- Surrogate Key from DimPolicy
-    dwAdj.AdjusterID,                    -- Surrogate Key from DimAdjuster
-    dwCust.CustomerID,                   -- Surrogate Key from DimCustomer
-    dwAgent.AgentID,                     -- Surrogate Key from DimAgent
-    c.Claim_ID AS JunkID,
+    p.PolicyID AS PolicyID,
+    dAdj.AdjusterID AS AdjusterID,
+    dCust.CustomerID AS CustomerID,
+    dAgent.AgentID AS AgentID,
+    c1.Claim_ID AS JunkID,
     d1.DateID AS SubmissionDateID,
     d2.DateID AS DecisionDateID,
     DATEDIFF(DAY, c1.SubmissionDate, c1.DecisionDate) AS DaysForDecision,
     c1.AmountPaid AS PayoutAmount
-FROM insurance_database.dbo.Claim c
-JOIN dbo.ClaimsTemp c1 ON c.Claim_ID = c1.Claim_ID
-
--- Join with source system to get business keys
-JOIN insurance_database.dbo.Policy p ON c.PolicyID = p.PolicyID
-JOIN insurance_database.dbo.Customer cu ON p.PESEL = cu.PESEL
-JOIN insurance_database.dbo.InsuranceAgent a ON p.AgentName = a.AgentName
-
--- Join with warehouse dimensions using business keys
-JOIN insurance_warehouse.dbo.Customer dwCust ON dwCust.PESEL = cu.PESEL
-JOIN insurance_warehouse.dbo.InsuranceAgent dwAgent ON dwAgent.AgentName = a.AgentName
-JOIN insurance_warehouse.dbo.Adjuster dwAdj ON dwAdj.AdjusterName = c.AdjusterName
-JOIN insurance_warehouse.dbo.Policy dwPol ON dwPol.PolicyID= p.PolicyID -- if applicable
-
--- Dates
+FROM insurance_database.dbo.Claim as c
+JOIN dbo.ClaimsTemp as c1 ON c.Claim_ID = c1.Claim_ID
+JOIN insurance_database.dbo.Policy p On c.PolicyID = p.PolicyID
+JOIN insurance_warehouse.dbo.Policy dPol ON dPol.PolicyID = c.PolicyID 
+JOIN insurance_warehouse.dbo.Adjuster dAdj ON dAdj.AdjusterName = c.AdjusterName
+JOIN insurance_warehouse.dbo.Customer dCust ON dCust.PESEL = p.PESEL
+JOIN insurance_warehouse.dbo.InsuranceAgent dAgent ON dAgent.AgentName = p.AgentName
 JOIN insurance_warehouse.dbo.Date d1 ON c1.SubmissionDate = d1.Date
 JOIN insurance_warehouse.dbo.Date d2 ON c1.DecisionDate = d2.Date;
 GO
 
-SET IDENTITY_INSERT ClaimProcessing ON;
+
+
 
 MERGE INTO ClaimProcessing AS Target
 USING vETLClaimProcessing AS Source
@@ -91,7 +81,7 @@ WHEN NOT MATCHED THEN
         Source.PayoutAmount
     );
 
-SET IDENTITY_INSERT Policy OFF;
+
 
 GO
 

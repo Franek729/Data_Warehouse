@@ -1,30 +1,23 @@
 USE insurance_warehouse;
 GO
 
-DROP TABLE IF EXISTS DimDate;
-GO
 
-CREATE TABLE DimDate (
-	DateID INT PRIMARY KEY,
-    [Date] DATE NOT NULL,
-    [Year] VARCHAR(4),
-    [MonthName] VARCHAR(10),
-    [MonthNumeric] INT
-);
-
+If (object_id('dbo.DateTemp') is not null) DROP TABLE dbo.DateTemp;
+CREATE TABLE dbo.DateTemp(DateID int, Date Date, Year VARCHAR(4), MonthName VARCHAR(10), MonthNumeric int);
+go
 
 DECLARE @StartDate DATE; 
 DECLARE @EndDate DATE;
 
 
-SELECT @StartDate = '2010-01-01', @EndDate = '2020-12-31';
+SELECT @StartDate = '2010-01-01', @EndDate = '2021-12-31';
 
 
 DECLARE @DateInProcess DATETIME = @StartDate;
 
 WHILE @DateInProcess <= @EndDate
 BEGIN
-    INSERT INTO [dbo].[DimDate] 
+    INSERT INTO [dbo].[DateTemp] 
     (	
 		DateID,
         [Date],
@@ -56,12 +49,12 @@ SELECT
 	, dd.Year
 	, dd.MonthName,
 	dd.MonthNumeric
-FROM dbo.DimDate dd
+FROM dbo.DateTemp dd
 go
 
-MERGE INTO DimDate AS Target
+MERGE INTO Date AS Target
 USING vETLDimDatesData AS Source
-    ON Target.Date = Source.Date
+    ON Target.DateID = Source.DateID
 WHEN NOT MATCHED BY TARGET THEN
     INSERT (DateID, Date, Year, MonthName, MonthNumeric)
     VALUES (Source.DateID, Source.Date, Source.Year, Source.MonthName, Source.MonthNumeric);

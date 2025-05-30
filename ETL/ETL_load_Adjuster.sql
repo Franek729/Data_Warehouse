@@ -13,7 +13,12 @@ FROM insurance_database.dbo.Adjuster;
 GO
 
 MERGE INTO Adjuster AS Target
-USING vETLDimAdjusterData AS Source
+USING (
+    SELECT
+        AdjusterName,
+        Specialization
+    FROM vETLDimAdjusterData
+) AS Source
 ON Target.AdjusterName = Source.AdjusterName
 WHEN NOT MATCHED THEN
     INSERT (AdjusterName, Specialization, IsCurrent)
@@ -24,22 +29,11 @@ THEN
     UPDATE
 	SET Target.IsCurrent = 0
 WHEN Not Matched BY Source
-	AND Target.AdjusterName != 'UNKNOWN' -- do not update the UNKNOWN tuple
+	AND Target.AdjusterName != 'UNKNOWN' 
 THEN
 	UPDATE
 	SET Target.IsCurrent = 0
 ;
-
-INSERT INTO Adjuster(
-	AdjusterName, 
-	Specialization, 
-	IsCurrent
-	)
-	SELECT 
-		AdjusterName, 
-		Specialization, 
-		1
-	FROM vETLDimAdjusterData
 
 DROP VIEW vETLDimAdjusterData;
 GO

@@ -120,7 +120,7 @@ def generate_agent():
 
     return agents
 
-def generate_policy():
+def generate_policy(customers, agents):
     for _ in range(number_of_policies):
         while True:
             policy_id = random.randint(100000, 999999)
@@ -157,7 +157,7 @@ def generate_policy():
     
     return policies, policies_data
 
-def generate_claim():
+def generate_claim(policies, adjusters):
     for _ in range(number_of_claims):
         while True:
             claim_id = random.randint(100000, 999999)

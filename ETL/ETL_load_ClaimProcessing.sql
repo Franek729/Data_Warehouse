@@ -14,7 +14,7 @@ GO
 
 
 BULK INSERT dbo.ClaimsTemp
-FROM 'C:\Users\pc\Desktop\Data_Warehouse\Generator\t1\csv'
+FROM 'C:\Users\pc\Desktop\Data_Warehouse\Generator\t1\csv\claims_data.csv'
 WITH (
      FIRSTROW = 2,
      FIELDTERMINATOR = ',',

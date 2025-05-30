@@ -47,8 +47,6 @@ CREATE TABLE Junk(
 	JunkID INT  PRIMARY KEY,
 	Status varchar(30),
 	FraudSuspicion Varchar(30),
-	CONSTRAINT chk_Status CHECK (Status IN ('accepted', 'declined')),
-	CONSTRAINT chk_FraudSuspicion CHECK (FraudSuspicion IN ('fraud suspected', 'not suspected of fraud'))
 );
 
 

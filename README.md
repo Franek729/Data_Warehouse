@@ -23,6 +23,7 @@ The project uses two SQL databases:
 ```bash
 git clone https://github.com/your-username/data_insurance_warehouse.git
 cd data_insurance_warehouse
+```
 
 ## 🎯 Project Goals
 - Practice end-to-end data engineering workflows
